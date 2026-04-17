@@ -88,7 +88,7 @@ async def get_submission(
         select(Submission).where(
             Submission.id == submission_id,
             Submission.organization_id == org_id,
-            Submission.is_deleted == False,  # noqa: E712
+            Submission.deleted_at.is_(None),  # noqa: E712
         )
     )
     submission = result.scalar_one_or_none()
@@ -108,7 +108,7 @@ async def list_submissions(
     """List submissions for an organization with pagination."""
     base_where = [
         Submission.organization_id == org_id,
-        Submission.is_deleted == False,  # noqa: E712
+        Submission.deleted_at.is_(None),  # noqa: E712
     ]
     if status_filter:
         base_where.append(Submission.status == status_filter)
@@ -220,7 +220,7 @@ async def trigger_evaluation(
             select(EvaluationConfig).where(
                 EvaluationConfig.id == config_id,
                 EvaluationConfig.organization_id == org_id,
-                EvaluationConfig.is_deleted == False,  # noqa: E712
+                EvaluationConfig.deleted_at.is_(None),  # noqa: E712
             )
         )
         config = config_result.scalar_one_or_none()

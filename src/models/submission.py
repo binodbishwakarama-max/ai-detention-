@@ -85,7 +85,7 @@ class Submission(BaseModel):
         doc="URL to the pitch deck (S3 presigned URL or external link)",
     )
     status: Mapped[SubmissionStatus] = mapped_column(
-        SAEnum(SubmissionStatus, name="submission_status", create_constraint=True),
+        SAEnum(SubmissionStatus, name="submission_status", create_constraint=True, values_callable=lambda obj: [e.value for e in obj]),
         nullable=False,
         default=SubmissionStatus.DRAFT,
         doc="Current lifecycle state",

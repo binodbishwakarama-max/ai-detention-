@@ -141,7 +141,7 @@ class EvaluationRun(BaseModel, OptimisticLockMixin):
         doc="User who initiated this run",
     )
     status: Mapped[RunStatus] = mapped_column(
-        SAEnum(RunStatus, name="run_status", create_constraint=True),
+        SAEnum(RunStatus, name="run_status", create_constraint=True, values_callable=lambda obj: [e.value for e in obj]),
         nullable=False,
         default=RunStatus.PENDING,
         doc="Current lifecycle state",

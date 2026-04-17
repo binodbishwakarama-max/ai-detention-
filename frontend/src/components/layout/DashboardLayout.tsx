@@ -1,12 +1,9 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import { LogOut, Bell } from 'lucide-react';
+import { Bell, HelpCircle, Grid } from 'lucide-react';
 import { Sidebar } from './Sidebar';
-import { useAuth } from '../../context/AuthContext';
 
 export const DashboardLayout: React.FC = () => {
-  const { logout } = useAuth();
-
   return (
     <div className="dashboard-shell">
       <Sidebar />
@@ -14,16 +11,20 @@ export const DashboardLayout: React.FC = () => {
       <div className="dashboard-main">
         {/* Top bar */}
         <header className="topbar">
-          <div className="topbar-left">
-            <div className="topbar-status">
-              <span className="status-dot" />
-              <span className="topbar-status-text">System Online</span>
-            </div>
+          <div className="topbar-status">
+            <span className="status-dot" />
+            <span className="topbar-status-text">System Online</span>
           </div>
 
           <div className="topbar-right">
+            <button className="topbar-icon-btn" title="Support">
+              <HelpCircle size={20} />
+            </button>
+            <button className="topbar-icon-btn" title="Apps">
+              <Grid size={20} />
+            </button>
             <button className="topbar-icon-btn" title="Notifications">
-              <Bell size={18} />
+              <Bell size={20} />
             </button>
           </div>
         </header>

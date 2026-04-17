@@ -67,7 +67,7 @@ async def _hard_delete_expired_records() -> dict:
 
         # 1. Evaluation Results
         stmt = delete(EvaluationResult).where(
-            EvaluationResult.is_deleted == True,  # noqa: E712
+            EvaluationResult.deleted_at.is_not(None),  # noqa: E712
             EvaluationResult.deleted_at < cutoff,
         )
         result = await db.execute(stmt)
@@ -75,7 +75,7 @@ async def _hard_delete_expired_records() -> dict:
 
         # 2. Evaluation Runs
         stmt = delete(EvaluationRun).where(
-            EvaluationRun.is_deleted == True,  # noqa: E712
+            EvaluationRun.deleted_at.is_not(None),  # noqa: E712
             EvaluationRun.deleted_at < cutoff,
         )
         result = await db.execute(stmt)
@@ -83,7 +83,7 @@ async def _hard_delete_expired_records() -> dict:
 
         # 3. Evaluation Configs
         stmt = delete(EvaluationConfig).where(
-            EvaluationConfig.is_deleted == True,  # noqa: E712
+            EvaluationConfig.deleted_at.is_not(None),  # noqa: E712
             EvaluationConfig.deleted_at < cutoff,
         )
         result = await db.execute(stmt)
@@ -92,7 +92,7 @@ async def _hard_delete_expired_records() -> dict:
         # 4. Datasets (also delete S3 files)
         expired_datasets = await db.execute(
             select(Dataset).where(
-                Dataset.is_deleted == True,  # noqa: E712
+                Dataset.deleted_at.is_not(None),  # noqa: E712
                 Dataset.deleted_at < cutoff,
             )
         )

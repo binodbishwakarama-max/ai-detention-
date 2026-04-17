@@ -82,8 +82,7 @@ export const DatasetsList: React.FC = () => {
                     </span>
                   </td>
                   <td style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>
-                    {/* Placeholder for record count if not in type */}
-                    {Math.floor(Math.random() * 500) + 100}
+                    {dataset.sample_count}
                   </td>
                   <td style={{ color: 'var(--text-secondary)' }}>
                     {new Date(dataset.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}

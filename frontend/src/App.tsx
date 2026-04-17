@@ -12,35 +12,20 @@ import { SettingsPage } from "./pages/Settings/SettingsPage";
 
 function App() {
   return (
-    <>
-      <div style={{
-        background: '#6366f1',
-        color: 'white',
-        textAlign: 'center',
-        padding: '6px',
-        fontSize: '0.85rem',
-        fontWeight: 600,
-        position: 'sticky',
-        top: 0,
-        zIndex: 9999
-      }}>
-        🚀 DASHBOARD MODE ACTIVE — BYPASSING AUTH
-      </div>
-      <Routes>
-        <Route element={<DashboardLayout />}>
-          <Route index element={<Dashboard />} />
-          <Route path="submissions" element={<SubmissionsList />} />
-          <Route path="submissions/new" element={<SubmissionCreate />} />
-          <Route path="submissions/:submissionId" element={<SubmissionDetail />} />
-          <Route path="evaluations" element={<EvaluationsList />} />
-          <Route path="evaluations/:runId" element={<EvaluationDetail />} />
-          <Route path="datasets" element={<DatasetsList />} />
-          <Route path="metrics" element={<MetricsList />} />
-          <Route path="settings" element={<SettingsPage />} />
-        </Route>
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </>
+    <Routes>
+      <Route element={<DashboardLayout />}>
+        <Route index element={<Dashboard />} />
+        <Route path="submissions" element={<SubmissionsList />} />
+        <Route path="submissions/new" element={<SubmissionCreate />} />
+        <Route path="submissions/:submissionId" element={<SubmissionDetail />} />
+        <Route path="evaluations" element={<EvaluationsList />} />
+        <Route path="evaluations/:runId" element={<EvaluationDetail />} />
+        <Route path="datasets" element={<DatasetsList />} />
+        <Route path="metrics" element={<MetricsList />} />
+        <Route path="settings" element={<SettingsPage />} />
+      </Route>
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
 

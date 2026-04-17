@@ -51,7 +51,7 @@ class Organization(BaseModel):
         doc="URL-safe identifier, used in API paths and subdomains",
     )
     plan_tier: Mapped[PlanTier] = mapped_column(
-        SAEnum(PlanTier, name="plan_tier", create_constraint=True),
+        SAEnum(PlanTier, name="plan_tier", create_constraint=True, values_callable=lambda obj: [e.value for e in obj]),
         nullable=False,
         default=PlanTier.FREE,
         doc="Current subscription plan",
@@ -79,6 +79,8 @@ class Organization(BaseModel):
     # ── Relationships ─────────────────────────────────────
     users = relationship("User", back_populates="organization", lazy="noload")
     submissions = relationship("Submission", back_populates="organization", lazy="noload")
+    datasets = relationship("Dataset", back_populates="organization", lazy="noload")
+    api_keys = relationship("ApiKey", back_populates="organization", lazy="noload")
 
     def __repr__(self) -> str:
         return f"<Organization(id={self.id}, slug='{self.slug}', plan='{self.plan_tier.value}')>"

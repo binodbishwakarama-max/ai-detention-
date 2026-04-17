@@ -291,7 +291,7 @@ async def _verify_run(
         select(EvaluationRun).where(
             EvaluationRun.id == run_id,
             EvaluationRun.organization_id == org_id,
-            EvaluationRun.is_deleted == False,  # noqa: E712
+            EvaluationRun.deleted_at.is_(None),  # noqa: E712
         )
     )
     run = result.scalar_one_or_none()

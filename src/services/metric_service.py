@@ -110,6 +110,7 @@ async def seed_builtin_metrics(db: AsyncSession) -> int:
             select(Metric).where(
                 Metric.name == metric_def["name"],
                 Metric.is_builtin == True,  # noqa: E712
+                Metric.deleted_at.is_(None),
             )
         )
         if existing.scalar_one_or_none():
@@ -152,7 +153,7 @@ async def create_custom_metric(
         select(Metric).where(
             Metric.name == name,
             Metric.organization_id == org_id,
-            Metric.is_deleted == False,  # noqa: E712
+            Metric.deleted_at.is_(None),  # noqa: E712
         )
     )
     if existing.scalar_one_or_none():
@@ -207,7 +208,7 @@ async def list_metrics(
             Metric.organization_id == org_id,
             Metric.is_builtin == True,  # noqa: E712
         ),
-        Metric.is_deleted == False,  # noqa: E712
+        Metric.deleted_at.is_(None),  # noqa: E712
     ]
 
     count_stmt = (
@@ -246,7 +247,7 @@ async def get_metric(
                 Metric.organization_id == org_id,
                 Metric.is_builtin == True,  # noqa: E712
             ),
-            Metric.is_deleted == False,  # noqa: E712
+            Metric.deleted_at.is_(None),  # noqa: E712
         )
     )
     metric = result.scalar_one_or_none()

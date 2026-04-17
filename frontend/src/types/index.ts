@@ -85,6 +85,12 @@ export interface EvalRunCreate {
   metadata?: Record<string, unknown>;
 }
 
+export interface DimensionScore {
+  dimension: string;
+  value: number;
+  rationale?: string;
+}
+
 // ── Results ─────────────────────────────────────────────
 
 export interface ResultSummary {
@@ -96,7 +102,7 @@ export interface ResultSummary {
   failed_workers: number;
   total_claims: number;
   total_contradictions: number;
-  scores: any[];
+  scores: DimensionScore[];
   progress_pct: number;
 }
 

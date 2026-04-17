@@ -88,7 +88,7 @@ async def get_evaluation_config(
         select(EvaluationConfig).where(
             EvaluationConfig.id == config_id,
             EvaluationConfig.organization_id == org_id,
-            EvaluationConfig.is_deleted == False,  # noqa: E712
+            EvaluationConfig.deleted_at.is_(None),  # noqa: E712
         )
     )
     config = result.scalar_one_or_none()
@@ -111,7 +111,7 @@ async def list_evaluation_configs(
         .select_from(EvaluationConfig)
         .where(
             EvaluationConfig.organization_id == org_id,
-            EvaluationConfig.is_deleted == False,  # noqa: E712
+            EvaluationConfig.deleted_at.is_(None),  # noqa: E712
         )
     )
     total = (await db.execute(count_stmt)).scalar() or 0
@@ -120,7 +120,7 @@ async def list_evaluation_configs(
         select(EvaluationConfig)
         .where(
             EvaluationConfig.organization_id == org_id,
-            EvaluationConfig.is_deleted == False,  # noqa: E712
+            EvaluationConfig.deleted_at.is_(None),  # noqa: E712
         )
         .order_by(EvaluationConfig.created_at.desc())
         .offset((page - 1) * page_size)
@@ -213,7 +213,7 @@ async def get_evaluation_run(
         select(EvaluationRun).where(
             EvaluationRun.id == run_id,
             EvaluationRun.organization_id == org_id,
-            EvaluationRun.is_deleted == False,  # noqa: E712
+            EvaluationRun.deleted_at.is_(None),  # noqa: E712
         )
     )
     run = result.scalar_one_or_none()
@@ -235,7 +235,7 @@ async def list_evaluation_runs(
     """List evaluation runs with optional filtering and pagination."""
     base_where = [
         EvaluationRun.organization_id == org_id,
-        EvaluationRun.is_deleted == False,  # noqa: E712
+        EvaluationRun.deleted_at.is_(None),  # noqa: E712
     ]
     if submission_id:
         base_where.append(EvaluationRun.submission_id == submission_id)

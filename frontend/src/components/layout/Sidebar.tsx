@@ -28,12 +28,15 @@ export const Sidebar: React.FC = () => {
       {/* Brand */}
       <div className="sidebar-brand">
         <div className="sidebar-brand-icon">
-          <Shield size={22} color="currentColor" />
+          <Shield size={18} strokeWidth={2.5} color="currentColor" />
         </div>
         <div>
           <h1 className="sidebar-title">Eval Engine</h1>
-          <span className="sidebar-subtitle">AI Validation</span>
         </div>
+      </div>
+
+      <div style={{ padding: '0 24px', marginBottom: '8px' }}>
+         <span className="sidebar-subtitle">Platform Navigation</span>
       </div>
 
       {/* Navigation */}
@@ -47,7 +50,7 @@ export const Sidebar: React.FC = () => {
               `sidebar-link ${isActive ? 'sidebar-link-active' : ''}`
             }
           >
-            <Icon size={18} />
+            <Icon size={18} strokeWidth={2} />
             <span>{label}</span>
           </NavLink>
         ))}
@@ -57,7 +60,7 @@ export const Sidebar: React.FC = () => {
       {user && (
         <div className="sidebar-user">
           <div className="sidebar-avatar">
-            {user.full_name?.charAt(0)?.toUpperCase() || 'U'}
+            {user.full_name?.charAt(0)?.toUpperCase() || 'A'}
           </div>
           <div className="sidebar-user-info">
             <span className="sidebar-user-name">{user.full_name}</span>

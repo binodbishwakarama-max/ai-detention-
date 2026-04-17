@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { FlaskConical, ArrowRight, Filter, ExternalLink } from 'lucide-react';
+import { ArrowRight, Filter } from 'lucide-react';
 import { runsApi } from '../../api/endpoints';
 import { ElevatedCard } from '../../components/ui/ElevatedCard';
 import { Button } from '../../components/ui/Button';

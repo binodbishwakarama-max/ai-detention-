@@ -77,7 +77,7 @@ class User(BaseModel):
         doc="Display name",
     )
     role: Mapped[UserRole] = mapped_column(
-        SAEnum(UserRole, name="user_role", create_constraint=True),
+        SAEnum(UserRole, name="user_role", create_constraint=True, values_callable=lambda obj: [e.value for e in obj]),
         nullable=False,
         default=UserRole.VIEWER,
         doc="RBAC role within the organization",
@@ -108,6 +108,7 @@ class User(BaseModel):
 
     # ── Relationships ─────────────────────────────────────
     organization = relationship("Organization", back_populates="users", lazy="joined")
+    api_keys = relationship("ApiKey", back_populates="user", lazy="noload")
 
     # ── Constants ─────────────────────────────────────────
     MAX_FAILED_ATTEMPTS = 5

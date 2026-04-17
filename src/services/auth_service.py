@@ -133,7 +133,7 @@ async def authenticate_user(
     # Fetch user
     result = await db.execute(
         select(User).where(
-            User.email == email, User.is_deleted == False  # noqa: E712
+            User.email == email, User.deleted_at.is_(None)  # noqa: E712
         )
     )
     user = result.scalar_one_or_none()
@@ -231,7 +231,7 @@ async def refresh_access_token(
         select(User).where(
             User.id == user_id,
             User.is_active == True,  # noqa: E712
-            User.is_deleted == False,  # noqa: E712
+            User.deleted_at.is_(None),  # noqa: E712
         )
     )
     user = result.scalar_one_or_none()
@@ -276,7 +276,7 @@ async def authenticate_api_key(
         select(ApiKey).where(
             ApiKey.key_hash == key_hash,
             ApiKey.is_revoked == False,  # noqa: E712
-            ApiKey.is_deleted == False,  # noqa: E712
+            ApiKey.deleted_at.is_(None),  # noqa: E712
         )
     )
     api_key = result.scalar_one_or_none()
@@ -372,7 +372,7 @@ async def revoke_api_key(
         select(ApiKey).where(
             ApiKey.id == key_id,
             ApiKey.organization_id == org_id,
-            ApiKey.is_deleted == False,  # noqa: E712
+            ApiKey.deleted_at.is_(None),  # noqa: E712
         )
     )
     api_key = result.scalar_one_or_none()

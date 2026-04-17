@@ -107,7 +107,7 @@ async def confirm_dataset_upload(
         select(Dataset).where(
             Dataset.id == dataset_id,
             Dataset.organization_id == org_id,
-            Dataset.is_deleted == False,  # noqa: E712
+            Dataset.deleted_at.is_(None),  # noqa: E712
         )
     )
     dataset = result.scalar_one_or_none()
@@ -166,7 +166,7 @@ async def get_dataset(
         select(Dataset).where(
             Dataset.id == dataset_id,
             Dataset.organization_id == org_id,
-            Dataset.is_deleted == False,  # noqa: E712
+            Dataset.deleted_at.is_(None),  # noqa: E712
         )
     )
     dataset = result.scalar_one_or_none()
@@ -186,7 +186,7 @@ async def list_datasets(
     """List datasets for an organization with pagination."""
     base_where = [
         Dataset.organization_id == org_id,
-        Dataset.is_deleted == False,  # noqa: E712
+        Dataset.deleted_at.is_(None),  # noqa: E712
     ]
     if status_filter:
         base_where.append(Dataset.status == status_filter)

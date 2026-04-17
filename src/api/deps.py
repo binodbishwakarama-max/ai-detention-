@@ -80,7 +80,7 @@ async def get_current_user(
             select(User).where(
                 User.id == user_id,
                 User.is_active == True,  # noqa: E712
-                User.is_deleted == False,  # noqa: E712
+                User.deleted_at.is_(None),
             )
         )
         user = result.scalar_one_or_none()
@@ -107,7 +107,7 @@ async def get_current_user(
             result = await db.execute(
                 select(User).where(
                     User.is_active == True,  # noqa: E712
-                    User.is_deleted == False,  # noqa: E712
+                    User.deleted_at.is_(None),
                 ).order_by(User.created_at.asc()).limit(1)
             )
             user = result.scalar_one_or_none()

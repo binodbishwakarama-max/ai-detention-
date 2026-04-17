@@ -184,7 +184,7 @@ export const EvaluationDetail: React.FC = () => {
                   <BarChart3 size={20} color="var(--google-green)" /> Dimension Analysis
                 </h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                  {summary.scores.map((score: any) => (
+                  {summary.scores.map((score: DimensionScore) => (
                     <div key={score.dimension}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                         <div>
