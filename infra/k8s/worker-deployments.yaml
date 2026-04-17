@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eval-worker-analysis
+  namespace: eval-engine
+  labels:
+    app: eval-worker
+    queue: analysis
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: eval-worker
+      queue: analysis
+  template:
+    metadata:
+      labels:
+        app: eval-worker
+        queue: analysis
+    spec:
+      containers:
+      - name: worker
+        image: ghcr.io/your-org/eval-engine-worker:latest
+        command: ["celery", "-A", "src.workers.celery_app", "worker", "-Q", "analysis", "--concurrency=4", "--loglevel=INFO"]
+        resources:
+          requests:
+            cpu: 1000m
+            memory: 1Gi
+          limits:
+            cpu: 2000m
+            memory: 2Gi
+        envFrom:
+        - secretRef:
+            name: eval-engine-secrets
+        - configMapRef:
+            name: eval-engine-config
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eval-worker-inference
+  namespace: eval-engine
+  labels:
+    app: eval-worker
+    queue: inference
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: eval-worker
+      queue: inference
+  template:
+    metadata:
+      labels:
+        app: eval-worker
+        queue: inference
+    spec:
+      containers:
+      - name: worker
+        image: ghcr.io/your-org/eval-engine-worker:latest
+        command: ["celery", "-A", "src.workers.celery_app", "worker", "-Q", "ai_inference", "--concurrency=2", "--loglevel=INFO"]
+        resources:
+          # Inference wait is largely I/O (LLM API calls) but memory heavy to parse massive blocks
+          requests:
+            cpu: 500m
+            memory: 2Gi
+          limits:
+            cpu: 1000m
+            memory: 4Gi
+        envFrom:
+        - secretRef:
+            name: eval-engine-secrets
+        - configMapRef:
+            name: eval-engine-config

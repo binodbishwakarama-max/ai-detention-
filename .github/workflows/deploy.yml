@@ -1,0 +1,64 @@
+name: Deploy Evaluation Engine
+
+on:
+  push:
+    branches: [ "main" ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Log in to the Container registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract metadata for API
+      id: meta-api
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-api
+
+    - name: Build and push API Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: Dockerfile
+        push: true
+        tags: ${{ steps.meta-api.outputs.tags }}
+        labels: ${ { steps.meta-api.outputs.labels } }
+
+  deploy-to-k8s:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up kubelogin for non-interactive login
+      uses: azure/use-kubelogin@v1
+      with:
+        kubelogin-version: 'v0.0.24'
+        
+    - name: Setup Kustomize
+      uses: imranismail/setup-kustomize@v1
+      
+    # Note: Replace this with your specific Cloud Provider's K8s integration (e.g. aws-actions/amazon-eks)
+    - name: Deploy to Cluster
+      run: |
+        echo "Using image tag: ${{ github.sha }}"
+        # Trigger an argoCD sync or execute pure kubectl apply over safe channels
+        # kubectl set image deployment/eval-api api=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-api:${{ github.sha }} -n eval-engine
+        # kubectl rollout status deployment/eval-api -n eval-engine

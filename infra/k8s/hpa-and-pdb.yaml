@@ -1,0 +1,63 @@
+# ── Horizontal Pod Autoscalers ───────────────────────────
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: eval-api-hpa
+  namespace: eval-engine
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: eval-api
+  minReplicas: 3
+  maxReplicas: 20
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: eval-worker-analysis-hpa
+  namespace: eval-engine
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: eval-worker-analysis
+  minReplicas: 5
+  maxReplicas: 50
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 80
+---
+# ── Pod Disruption Budgets ───────────────────────────────
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: eval-api-pdb
+  namespace: eval-engine
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: eval-api
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: eval-worker-pdb
+  namespace: eval-engine
+spec:
+  maxUnavailable: 25%
+  selector:
+    matchLabels:
+      app: eval-worker

@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eval-api
+  namespace: eval-engine
+  labels:
+    app: eval-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: eval-api
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: eval-api
+    spec:
+      containers:
+      - name: api
+        image: ghcr.io/your-org/eval-engine-api:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+        resources:
+          requests:
+            cpu: 500m
+            memory: 512Mi
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+        readinessProbe:
+          httpGet:
+            path: /api/v1/health
+            port: 8000
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /api/v1/health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        envFrom:
+        - secretRef:
+            name: eval-engine-secrets
+        - configMapRef:
+            name: eval-engine-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: eval-api-service
+  namespace: eval-engine
+spec:
+  selector:
+    app: eval-api
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8000
+  type: ClusterIP

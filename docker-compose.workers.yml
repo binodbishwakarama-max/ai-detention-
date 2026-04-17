@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  # ── Message Broker & Cache ─────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  # ── PostgreSQL Database ─────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: engine_user
+      POSTGRES_PASSWORD: engine_password
+      POSTGRES_DB: eval_engine
+    ports:
+      - "5432:5432"
+
+  # ── Worker 1: High Priority (Orchestration & Finalization) ─────
+  worker-high-priority:
+    build: .
+    command: celery -A src.workers.celery_app worker -Q high_priority --concurrency=4 -l INFO -n high_priority@%h
+    environment:
+      CELERY_BROKER_URL: redis://redis:6379/1
+      DATABASE_URL: postgresql+asyncpg://engine_user:engine_password@postgres:5432/eval_engine
+    depends_on:
+      - redis
+      - postgres
+
+  # ── Worker 2: Analysis (Data Extraction - I/O Bound) ───────────
+  worker-analysis:
+    build: .
+    command: celery -A src.workers.celery_app worker -Q analysis --concurrency=10 -l INFO -n analysis@%h
+    environment:
+      CELERY_BROKER_URL: redis://redis:6379/1
+      DATABASE_URL: postgresql+asyncpg://engine_user:engine_password@postgres:5432/eval_engine
+    depends_on:
+      - redis
+      - postgres
+
+  # ── Worker 3: AI Inference (Compute/LLM Bound) ─────────────────
+  worker-ai:
+    build: .
+    command: celery -A src.workers.celery_app worker -Q ai_inference --concurrency=4 -l INFO -n ai_inference@%h
+    environment:
+      CELERY_BROKER_URL: redis://redis:6379/1
+      DATABASE_URL: postgresql+asyncpg://engine_user:engine_password@postgres:5432/eval_engine
+    depends_on:
+      - redis
+      - postgres
+
+  # ── Worker 4: Export (Background Reports) ──────────────────────
+  worker-export:
+    build: .
+    command: celery -A src.workers.celery_app worker -Q export --concurrency=2 -l INFO -n export@%h
+    environment:
+      CELERY_BROKER_URL: redis://redis:6379/1
+      DATABASE_URL: postgresql+asyncpg://engine_user:engine_password@postgres:5432/eval_engine
+    depends_on:
+      - redis
+      - postgres
+
+  # ── Celery Flower (Monitoring Dashboard) ───────────────────────
+  flower:
+    build: .
+    command: celery -A src.workers.celery_app flower --conf=flowerconfig.py
+    ports:
+      - "5555:5555"
+    environment:
+      CELERY_BROKER_URL: redis://redis:6379/1
+      FLOWER_USER: admin
+      FLOWER_PASSWORD: flower_secret
+    depends_on:
+      - redis
+      - worker-high-priority

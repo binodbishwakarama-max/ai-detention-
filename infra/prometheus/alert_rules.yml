@@ -1,0 +1,117 @@
+# ============================================================
+# Prometheus Alert Rules — AI Evaluation Engine
+# ============================================================
+# Severity levels:
+#   warning  → Slack #alerts channel
+#   critical → PagerDuty / Slack #oncall (page someone)
+# ============================================================
+
+groups:
+  - name: eval-engine-http
+    rules:
+      # ── Error Rate (WARNING) ──────────────────────────────
+      # Server error rate exceeds 1% for 5 minutes
+      - alert: HighErrorRate
+        expr: >
+          (
+            sum(rate(http_requests_total{status_code=~"5.."}[5m]))
+            /
+            sum(rate(http_requests_total[5m]))
+          ) > 0.01
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: "HTTP error rate above 1%"
+          description: >
+            Server error rate is {{ $value | humanizePercentage }} over the
+            last 5 minutes. Investigate recent deployments or dependency failures.
+          runbook: "https://wiki.internal/runbooks/high-error-rate"
+
+      # ── Error Rate (CRITICAL) ─────────────────────────────
+      # Server error rate exceeds 5% for 2 minutes — page someone
+      - alert: CriticalErrorRate
+        expr: >
+          (
+            sum(rate(http_requests_total{status_code=~"5.."}[2m]))
+            /
+            sum(rate(http_requests_total[2m]))
+          ) > 0.05
+        for: 2m
+        labels:
+          severity: critical
+          team: backend
+        annotations:
+          summary: "CRITICAL: HTTP error rate above 5%"
+          description: >
+            Server error rate is {{ $value | humanizePercentage }} over the
+            last 2 minutes. Immediate attention required.
+          runbook: "https://wiki.internal/runbooks/critical-error-rate"
+
+      # ── P99 Latency ───────────────────────────────────────
+      # P99 latency exceeds 500ms for 10 minutes
+      - alert: HighP99Latency
+        expr: >
+          histogram_quantile(0.99,
+            sum(rate(http_request_duration_seconds_bucket[10m])) by (le)
+          ) > 0.5
+        for: 10m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: "P99 latency above 500ms"
+          description: >
+            99th percentile response time is {{ $value | humanizeDuration }}.
+            Check for slow queries, upstream timeouts, or resource exhaustion.
+          runbook: "https://wiki.internal/runbooks/high-latency"
+
+  - name: eval-engine-workers
+    rules:
+      # ── Queue Depth ────────────────────────────────────────
+      # Any queue exceeds 1000 messages for 5 minutes
+      - alert: QueueBacklog
+        expr: celery_queue_depth > 1000
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "Celery queue {{ $labels.queue_name }} has backlog"
+          description: >
+            Queue {{ $labels.queue_name }} has {{ $value }} pending messages.
+            Consider scaling workers or investigating stuck tasks.
+          runbook: "https://wiki.internal/runbooks/queue-backlog"
+
+      # ── Worker Offline ─────────────────────────────────────
+      # Any worker scrape target is down for > 2 minutes
+      - alert: WorkerOffline
+        expr: up{job="celery-worker"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "CRITICAL: Celery worker is offline"
+          description: >
+            Worker {{ $labels.instance }} has been unreachable for
+            over 2 minutes. Tasks may be queuing up without processing.
+          runbook: "https://wiki.internal/runbooks/worker-offline"
+
+  - name: eval-engine-llm
+    rules:
+      # ── LLM Cost ───────────────────────────────────────────
+      # LLM spend exceeds $50/hour
+      - alert: HighLLMCost
+        expr: sum(rate(llm_cost_usd_total[1h])) * 3600 > 50
+        for: 5m
+        labels:
+          severity: warning
+          team: ml
+        annotations:
+          summary: "LLM cost exceeding $50/hour"
+          description: >
+            Current LLM spending rate is ${{ $value | printf "%.2f" }}/hour.
+            Check for runaway evaluation tasks or misconfigured batch sizes.
+          runbook: "https://wiki.internal/runbooks/llm-cost"

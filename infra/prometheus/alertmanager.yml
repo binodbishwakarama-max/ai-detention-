@@ -1,0 +1,76 @@
+# ============================================================
+# Alertmanager Configuration — AI Evaluation Engine
+# ============================================================
+# Routing:
+#   critical → PagerDuty + Slack #oncall
+#   warning  → Slack #alerts
+#
+# Replace placeholder URLs/keys with your actual integrations.
+# ============================================================
+
+global:
+  resolve_timeout: 5m
+  slack_api_url: "https://hooks.slack.com/services/REPLACE/WITH/YOUR_WEBHOOK"
+
+# ── Inhibition Rules ────────────────────────────────────────
+# If CriticalErrorRate is firing, suppress HighErrorRate
+inhibit_rules:
+  - source_matchers:
+      - severity="critical"
+    target_matchers:
+      - severity="warning"
+    equal: ["alertname", "team"]
+
+# ── Routing Tree ────────────────────────────────────────────
+route:
+  receiver: slack-warnings
+  group_by: ["alertname", "team"]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+
+  routes:
+    # Critical alerts → page oncall + Slack
+    - matchers:
+        - severity="critical"
+      receiver: oncall-critical
+      group_wait: 10s
+      repeat_interval: 1h
+      continue: false
+
+    # Warning alerts → Slack only
+    - matchers:
+        - severity="warning"
+      receiver: slack-warnings
+      repeat_interval: 4h
+
+# ── Receivers ───────────────────────────────────────────────
+receivers:
+  - name: slack-warnings
+    slack_configs:
+      - channel: "#alerts"
+        title: '{{ template "slack.title" . }}'
+        text: '{{ template "slack.text" . }}'
+        send_resolved: true
+        actions:
+          - type: button
+            text: "View Runbook"
+            url: '{{ (index .Alerts 0).Annotations.runbook }}'
+          - type: button
+            text: "Silence Alert"
+            url: '{{ template "slack.silence_url" . }}'
+
+  - name: oncall-critical
+    slack_configs:
+      - channel: "#oncall"
+        title: '🚨 {{ template "slack.title" . }}'
+        text: '{{ template "slack.text" . }}'
+        send_resolved: true
+    # Uncomment and configure for PagerDuty:
+    # pagerduty_configs:
+    #   - service_key: "REPLACE_WITH_PAGERDUTY_SERVICE_KEY"
+    #     severity: critical
+
+# ── Templates ───────────────────────────────────────────────
+templates:
+  - "/etc/alertmanager/templates/*.tmpl"

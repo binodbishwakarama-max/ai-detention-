@@ -1,0 +1,50 @@
+# ============================================================
+# Prometheus Configuration — AI Evaluation Engine
+# ============================================================
+# Scrape targets:
+#   api        — FastAPI /metrics endpoint
+#   celery     — Worker prometheus exporter (when enabled)
+# ============================================================
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  scrape_timeout: 10s
+
+# ── Alertmanager Integration ────────────────────────────────
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+
+# ── Alert Rules ─────────────────────────────────────────────
+rule_files:
+  - "alert_rules.yml"
+
+# ── Scrape Targets ──────────────────────────────────────────
+scrape_configs:
+  # FastAPI application metrics
+  - job_name: "eval-engine-api"
+    metrics_path: /metrics
+    scrape_interval: 10s
+    static_configs:
+      - targets: ["api:8000"]
+        labels:
+          service: eval-engine
+          component: api
+
+  # Celery worker metrics (exposed via flower or custom endpoint)
+  - job_name: "celery-worker"
+    metrics_path: /metrics
+    scrape_interval: 15s
+    static_configs:
+      - targets: ["worker:9100"]
+        labels:
+          service: eval-engine
+          component: worker
+
+  # Prometheus self-monitoring
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
